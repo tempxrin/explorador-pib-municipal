@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PIB Municipal - Dados do IBGE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="spinner-lg"></div>
+      <p id="loadingStatus">Carregando dados do IBGE...</p>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" id="nav-logo"></a>
+      <div class="nav-links">
+        <a href="#" class="nav-link active" data-page="busca">Pesquisar Município</a>
+        <a href="#" class="nav-link" data-page="dashboard">Dashboard</a>
+      </div>
+      <div class="nav-right">
+        <button class="theme-btn" id="themeBtn" aria-label="Alternar tema">
+          <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+          </svg>
+          <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" style="display:none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+          </svg>
+        </button>
+      </div>
+      <button class="burger" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#" class="mm-link" data-page="busca">Buscar Cidade</a>
+    <a href="#" class="mm-link" data-page="dashboard">Dashboard</a>
+  </div>
+
+  <!-- PÁGINA: BUSCA -->
+  <div id="page-busca" class="page active">
+    <section class="hero">
+      <div class="hero-inner">
+        <h1 class="hero-title">PIB dos<br><span>Municípios</span></h1>
+        <p class="hero-sub">Explore os dados de PIB de todos os municípios brasileiros.</p>
+        <div class="search-box">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <input type="text" id="searchInput" placeholder="Digite o nome da cidade..." autocomplete="off" />
+          <div class="search-results" id="searchResults"></div>
+        </div>
+      </div>
+    </section>
+
+    <div id="resultado" class="hidden">
+      <section class="section">
+        <div class="wrap">
+          <div class="result-header" id="resultHeader"></div>
+          <div class="cards-grid" id="cardsGrid"></div>
+        </div>
+      </section>
+
+      <section class="section section-alt">
+        <div class="wrap">
+          <p class="section-label">Comparativo</p>
+          <h2 class="section-title">Como se compara?</h2>
+          <div class="chart-container">
+            <div class="chart-wrap">
+              <canvas id="chartComparativo"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="wrap">
+          <p class="section-label">Ranking</p>
+          <h2 class="section-title">Posição no Estado</h2>
+          <div class="chart-container">
+            <div class="chart-wrap">
+              <canvas id="chartRanking"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- PÁGINA: DASHBOARD -->
+  <div id="page-dashboard" class="page">
+    <section class="section">
+      <div class="wrap">
+        <p class="section-label">Visão Geral</p>
+        <h2 class="section-title">Dashboard</h2>
+        <div class="cards-grid stats-grid" id="statsCards"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <p class="section-label">Mapa</p>
+        <h2 class="section-title">PIB per Capita por Município</h2>
+        <div class="map-container">
+          <div id="map"></div>
+          <div class="map-legend" id="mapLegend"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="wrap">
+        <p class="section-label">Top 10</p>
+        <h2 class="section-title">Rankings</h2>
+        <div class="filter-row">
+          <div class="filter-group">
+            <label>Região</label>
+            <div class="multi-select" id="filterRegiao">
+              <div class="multi-select-trigger" id="triggerRegiao">Todas</div>
+              <div class="multi-select-dropdown" id="dropdownRegiao"></div>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Estado</label>
+            <div class="multi-select" id="filterUF">
+              <div class="multi-select-trigger" id="triggerUF">Todos</div>
+              <div class="multi-select-dropdown" id="dropdownUF"></div>
+            </div>
+          </div>
+          <div class="filter-tags" id="filterTags"></div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="chart-card">
+            <h3>Top 10 PIB Per Capita</h3>
+            <div class="chart-wrap">
+              <canvas id="chartTop10"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Top 10 PIB</h3>
+            <div class="chart-wrap">
+              <canvas id="chartTop10Total"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="dashboard-grid">
+          <div class="chart-card">
+            <h3>Distribuição por Faixas</h3>
+            <div class="chart-wrap">
+              <canvas id="chartFaixas"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>PIB por Região</h3>
+            <div class="chart-wrap">
+              <canvas id="chartRegioesTotal"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <p>Dados: IBGE Cidades · Indicadores 47001 (PIB per capita) e 46997 (PIB total) · Ano: 2023</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script>Chart.register(ChartDataLabels); Chart.defaults.plugins.datalabels = { display: false };</script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
