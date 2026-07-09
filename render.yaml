@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: pib-municipal
+    runtime: python
+    buildCommand: pip install requests
+    startCommand: cd api && python server.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0

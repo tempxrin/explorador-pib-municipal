@@ -198,7 +198,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         pass
 
 if __name__ == "__main__":
-    PORT = 3000
+    PORT = int(os.environ.get("PORT", 3000))
     threading.Thread(target=load_all_pibs, daemon=True).start()
     server = http.server.HTTPServer(("0.0.0.0", PORT), Handler)
     print(f"Servidor: http://localhost:{PORT}")
